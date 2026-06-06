@@ -24,8 +24,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.coroutine.ui.theme.CoroutineTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -44,10 +53,34 @@ class MainActivity : ComponentActivity() {
                             coroutineCount = selectedCount
                             statusText = "$selectedCount coroutines selected"
                         },
-                        onLaunchClick = {},
+                        onLaunchClick = {
+                            launchCoroutines(coroutineCount) { status ->
+                                statusText = status
+                            }
+                        },
                         modifier = Modifier.padding(innerPadding),
                     )
                 }
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        coroutineScope.cancel()
+        super.onDestroy()
+    }
+
+    private suspend fun performTask(taskNumber: Int): Deferred<String> =
+        coroutineScope.async(Dispatchers.Main) {
+            delay(5_000)
+            "Finished Coroutine $taskNumber"
+        }
+
+    private fun launchCoroutines(count: Int, onStatusChange: (String) -> Unit) {
+        (1..count).forEach { taskNumber ->
+            onStatusChange("Started Coroutine $taskNumber")
+            coroutineScope.launch(Dispatchers.Main) {
+                onStatusChange(performTask(taskNumber).await())
             }
         }
     }
