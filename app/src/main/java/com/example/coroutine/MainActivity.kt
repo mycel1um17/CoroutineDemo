@@ -15,6 +15,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,11 +31,19 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CoroutineTheme {
+                var coroutineCount by remember { mutableIntStateOf(1) }
+                var statusText by remember {
+                    mutableStateOf("Move the slider and launch coroutines")
+                }
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     CoroutineDemoScreen(
-                        coroutineCount = 1,
-                        statusText = "Move the slider and launch coroutines",
-                        onCountChange = {},
+                        coroutineCount = coroutineCount,
+                        statusText = statusText,
+                        onCountChange = { selectedCount ->
+                            coroutineCount = selectedCount
+                            statusText = "$selectedCount coroutines selected"
+                        },
                         onLaunchClick = {},
                         modifier = Modifier.padding(innerPadding),
                     )
